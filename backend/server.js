@@ -197,6 +197,14 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
+
+// =======================
+//   KEEP PROCESS ALIVE (RAILWAY)
+// =======================
+setInterval(() => {
+  // keeps event loop alive
+}, 60 * 1000);
+
 // Optional test ping
 db.query("SELECT 1", err => {
   if (err) {
