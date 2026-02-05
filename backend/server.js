@@ -18,22 +18,23 @@ const adminAuthMiddleware = require("./middleware/adminAuthMiddleware");
 const app = express();
 
 // =======================
-//   CORS (VPS READY)
+//   CORS (RAILWAY SAFE)
 // =======================
 const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",")
+  ? process.env.CORS_ORIGINS.split(",").map(o => o.trim())
   : [];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow server-to-server / Postman
+  origin: (origin, callback) => {
+    // allow non-browser clients (Postman, Razorpay, Railway)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    return callback(new Error("Not allowed by CORS"));
+    console.warn("⚠️ CORS blocked origin:", origin);
+    return callback(null, false); // ❗ DO NOT throw error
   },
   credentials: true
 }));
@@ -183,41 +184,50 @@ function generateBookingRef() {
 // =======================
 //   MYSQL CONNECTION (RAILWAY SAFE)
 // =======================
+
+const MYSQL_HOST =
+  process.env.MYSQL_HOST || process.env.MYSQLHOST;
+
+const MYSQL_PORT =
+  process.env.MYSQL_PORT || process.env.MYSQLPORT || 3306;
+
+const MYSQL_USER =
+  process.env.MYSQL_USER || process.env.MYSQLUSER;
+
+const MYSQL_PASSWORD =
+  process.env.MYSQL_PASSWORD || process.env.MYSQLPASSWORD;
+
+const MYSQL_DATABASE =
+  process.env.MYSQL_DATABASE || process.env.MYSQLDATABASE;
+
 console.log("🔍 MYSQL ENV CHECK", {
-  MYSQL_HOST: process.env.MYSQL_HOST,
-  MYSQL_PORT: process.env.MYSQL_PORT,
-  MYSQL_USER: process.env.MYSQL_USER,
-  MYSQL_DATABASE: process.env.MYSQL_DATABASE
+  MYSQL_HOST,
+  MYSQL_PORT,
+  MYSQL_USER,
+  MYSQL_DATABASE
 });
 
 const db = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  port: process.env.MYSQL_PORT,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
+  host: MYSQL_HOST,
+  port: MYSQL_PORT,
+  user: MYSQL_USER,
+  password: MYSQL_PASSWORD,
+  database: MYSQL_DATABASE,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
-
-
-// =======================
-//   KEEP PROCESS ALIVE (RAILWAY)
-// =======================
-setInterval(() => {
-  // keeps event loop alive
-}, 60 * 1000);
-
-// Optional test ping
-db.query("SELECT 1", err => {
+// Test connection ONCE
+db.getConnection((err, conn) => {
   if (err) {
     console.error("❌ DB connection failed:", err.message);
   } else {
-    console.log("✅ Connected to MySQL (pool)");
+    console.log("✅ MySQL connected successfully");
+    conn.release();
   }
 });
+
 
 
 const adminAuth = require("./routes/adminAuth");
