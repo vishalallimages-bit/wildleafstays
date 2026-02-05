@@ -44,6 +44,14 @@ app.use(cors({
 // =======================
 app.use(express.json());
 
+
+// =======================
+//   HEALTH CHECK (RAILWAY)
+// =======================
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // =======================
 //   STATIC FILES (VPS SAFE)
 // =======================
@@ -62,8 +70,9 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 //   DEFAULT ROUTE
 // =======================
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.status(200).send("Wildleaf backend running");
 });
+
 
 
 
