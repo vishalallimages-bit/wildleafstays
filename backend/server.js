@@ -174,7 +174,10 @@ function generateBookingRef() {
 // =======================
 //   MYSQL CONNECTION
 // =======================
-const db = mysql.createConnection({
+// =======================
+//   MYSQL CONNECTION (PRODUCTION SAFE)
+// =======================
+const db = mysql.createPool({
   host: process.env.MYSQLHOST,
   port: process.env.MYSQLPORT,
   user: process.env.MYSQLUSER,
@@ -185,13 +188,15 @@ const db = mysql.createConnection({
   queueLimit: 0
 });
 
-
-
-
-db.connect(err => {
-  if (err) console.error("❌ DB connection failed:", err.message);
-  else console.log("✅ Connected to MySQL");
+// Optional test ping
+db.query("SELECT 1", err => {
+  if (err) {
+    console.error("❌ DB connection failed:", err.message);
+  } else {
+    console.log("✅ Connected to MySQL (pool)");
+  }
 });
+
 
 const adminAuth = require("./routes/adminAuth");
 app.use("/api/admin", adminAuth(db));
