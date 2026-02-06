@@ -20,22 +20,9 @@ const app = express();
 // =======================
 //   CORS (RAILWAY SAFE)
 // =======================
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map(o => o.trim())
-  : [];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // allow non-browser clients (Postman, Razorpay, Railway)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.warn("⚠️ CORS blocked origin:", origin);
-    return callback(null, false); // ❗ DO NOT throw error
-  },
+app.use(require("cors")({
+  origin: true,
   credentials: true
 }));
 
@@ -3325,6 +3312,8 @@ process.on('SIGINT', () => {
 
 
 
-/ /   r e d e p l o y   t r i g g e r  
- / /   d e p l o y  
- 
+/ /   r e d e p l o y   t r i g g e r 
+ 
+ / /   d e p l o y 
+ 
+ 
