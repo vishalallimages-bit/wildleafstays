@@ -1,4 +1,4 @@
-//VPS READY FILES
+
 
 require("dotenv").config();
 
@@ -3325,3 +3325,5 @@ process.on('SIGINT', () => {
 
 
 
+/ /   r e d e p l o y   t r i g g e r  
+ 
