@@ -1,1 +1,1 @@
-const API = "https://wildleafstays-production.up.railway.app/api";
+window.API_BASE = "https://wildleafstays-production.up.railway.app";

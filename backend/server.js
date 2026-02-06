@@ -319,10 +319,20 @@ app.post("/api/branding/title", (req, res) => {
 
 // Get Branding (title + logo)
 app.get("/api/branding", (req, res) => {
-  db.query("SELECT site_title, logo_url FROM branding WHERE id=1", (err, rows) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(rows[0]);
-  });
+  db.query(
+    "SELECT site_title, logo_url FROM branding WHERE id=1",
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err });
+
+      const row = rows[0] || {};
+
+      if (row.logo_url && row.logo_url.startsWith("/")) {
+        row.logo_url = `${process.env.PUBLIC_BASE_URL}${row.logo_url}`;
+      }
+
+      res.json(row);
+    }
+  );
 });
 
 

@@ -1,6 +1,6 @@
 import { saveToken } from "./auth.js";
 
-const API_BASE = ""; // CHANGE LATER
+const API_BASE = "https://wildleafstays-production.up.railway.app";
 
 const form = document.getElementById("loginForm");
 const errorMsg = document.getElementById("errorMsg");
@@ -18,7 +18,10 @@ form.addEventListener("submit", async e => {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/login`, {
+   const res = await fetch(
+  "https://wildleafstays-production.up.railway.app/api/admin/login",
+  {
+
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -32,7 +35,6 @@ form.addEventListener("submit", async e => {
     }
 
     saveToken(data.token);
-
     window.location.href = "/admin/hotel/dashboard.html";
 
   } catch (err) {

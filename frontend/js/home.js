@@ -46,7 +46,7 @@ function initHomepageDatePicker() {
 // ============================
 async function loadHeroImages() {
   try {
-    const res = await fetch("/api/collage");
+    const res = await fetch(`${API}/collage`);
     const images = await res.json();
 
     const slider = document.getElementById("heroSlider");
@@ -86,7 +86,8 @@ async function loadHeroImages() {
 
 async function loadHeroMessaging() {
   try {
-    const res = await fetch("/api/homepage/settings");
+   
+    const res = await fetch(`${API_BASE}/api/branding`);
     const data = await res.json();
 
     /* =========================
@@ -133,7 +134,8 @@ async function loadHeroMessaging() {
 // DOMContentLoaded
 // ============================
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = "/api";
+  const API = "https://wildleafstays-production.up.railway.app/api";
+
   initHomepageDatePicker();
   
   loadHeroImages();
@@ -166,7 +168,7 @@ if (adultsSelect && kidsSelect) {
 }
 
   // Load City Dropdown (instead of hotels)
-fetch(`${API_BASE}/hotels`)
+fetch(`${API}/hotels`
   .then(res => res.json())
   .then(hotels => {
     const select = document.getElementById("citySelect");
@@ -202,7 +204,7 @@ fetch(`${API_BASE}/hotels`)
 
 
   // Load homepage sections
-  fetch("/api/homepage/render")
+  fetch(`${API}/homepage/render`)
     .then(res => res.json())
     .then(renderHomepageSections)
     .catch(err => console.error("Homepage sections load error:", err));
