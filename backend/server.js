@@ -3290,13 +3290,13 @@ app.delete("/api/admin/header-menu/:id", adminAuthMiddleware, (req, res) => {
 // ====================================================
 //                START SERVER
 // ====================================================
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Railway / Docker shutdown handling
+
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
   server.close(() => {
@@ -3311,9 +3311,5 @@ process.on('SIGINT', () => {
 });
 
 
-
-/ /   r e d e p l o y   t r i g g e r 
- 
- / /   d e p l o y 
  
  
