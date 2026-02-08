@@ -1,5 +1,3 @@
-
-
 require("dotenv").config();
 
 // =======================
@@ -21,11 +19,24 @@ const app = express();
 //   CORS (RAILWAY SAFE)
 // =======================
 
-app.use(require("cors")({
-  origin: true,
+const allowedOrigins = [
+  "https://www.wildleafstays.com",
+  "https://wildleafstays.com"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow server-side / health checks
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS not allowed"));
+  },
   credentials: true
 }));
-
 
 // =======================
 //   MIDDLEWARES
@@ -3291,7 +3302,6 @@ app.delete("/api/admin/header-menu/:id", adminAuthMiddleware, (req, res) => {
 //                START SERVER
 // ====================================================
 const PORT = process.env.PORT || 8080;
-
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
