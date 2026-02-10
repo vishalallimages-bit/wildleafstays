@@ -6,7 +6,8 @@ require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
-const multer = require("multer");
+const upload = require("./middleware/upload");
+
 const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
@@ -258,16 +259,7 @@ async function findFreeRoomForDates(conn, hotelId, roomCategoryId, checkIn, chec
 }
 
 
-// =======================
-//   MULTER STORAGE
-// =======================
-const storage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, "uploads")),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + "-" + file.originalname)
-});
-const upload = multer({ storage });
+
 
 
 // ====================================================
