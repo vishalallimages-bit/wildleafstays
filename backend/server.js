@@ -406,34 +406,28 @@ app.delete("/api/homepage/sections/:id", (req, res) => {
 // ====================================================
 
 // Upload Collage Image
-app.post("/api/collage/upload", async (req, res) => {
+app.post("/api/collage/upload", upload.single("image"), (req, res) => {
   try {
-    if (!req.files || !req.files.image) {
+    if (!req.file) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const file = req.files.image;
+    const imageUrl = req.file.path; // ✅ Cloudinary URL from middleware
 
-    const result = await cloudinary.uploader.upload(file.tempFilePath, {
-      folder: "homepage_collage"
-    });
-
-    await db.query(
+    db.query(
       "INSERT INTO collage_images (image_url) VALUES (?)",
-      [result.secure_url]
+      [imageUrl],
+      err => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, image_url: imageUrl });
+      }
     );
-
-    res.json({
-      success: true,
-      image_url: result.secure_url
-    });
 
   } catch (err) {
     console.error("Collage upload failed:", err);
     res.status(500).json({ error: "Upload failed" });
   }
 });
-
 // Get All Collage Images
 app.get("/api/collage", (req, res) => {
   db.query("SELECT * FROM collage_images ORDER BY id DESC", (err, rows) => {
