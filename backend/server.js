@@ -22,7 +22,7 @@ const app = express();
 
 const allowedOrigins = [
   "https://www.wildleafstays.com",
-  "https://wildleafstays.com"
+  "https://wildleafstays.com",
 "https://api.wildleafstays.com"
 ];
 
