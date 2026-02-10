@@ -914,7 +914,7 @@ console.log(
   "hotelId =", req.params.hotelId
 );
 
-  const conn = db.promise();
+  const conn = await db.promise().getConnection();
 
   const {
     category,
@@ -1039,6 +1039,8 @@ console.log("[ROOM-CREATE] BODY:", {
     await conn.rollback();
     console.error("ROOM CATEGORY CREATE ERROR:", err);
     res.status(500).json({ error: "Failed to create room category" });
+  }finally {
+    conn.release(); // ✅ REQUIRED
   }
 });
 
