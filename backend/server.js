@@ -410,7 +410,8 @@ app.delete("/api/homepage/sections/:id", (req, res) => {
 app.post("/api/collage/upload", upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No image uploaded" });
 
-  const imageUrl = `/uploads/${req.file.filename}`;
+  const logoUrl = req.file.path;
+
 
   db.query(
     "INSERT INTO collage_images (image_url) VALUES (?)",
@@ -736,7 +737,8 @@ app.put("/api/hotels/:id", (req, res) => {
 //===================================================================
 
 app.post("/api/hotels/:id/images", upload.single("image"), (req, res) => {
-  const imageUrl = `/uploads/${req.file.filename}`;
+  const imageUrl = req.file.path; // ✅ Cloudinary URL
+
   db.query(
     "INSERT INTO hotel_images (hotel_id, image_url) VALUES (?, ?)",
     [req.params.id, imageUrl],
@@ -1248,7 +1250,8 @@ function setMainImage(roomId, imageUrl, callback) {
 // Upload Room Image (auto-set main if none exists)
 app.post("/api/rooms/:roomId/images", upload.single("image"), (req, res) => {
   const roomId = req.params.roomId;
-  const imageUrl = `/uploads/${req.file.filename}`;
+  const imageUrl = req.file.path;
+
 
   db.query(
     "INSERT INTO room_images (room_id, image_url) VALUES (?, ?)",
