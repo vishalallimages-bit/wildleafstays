@@ -1268,11 +1268,11 @@ function setMainImage(roomId, imageUrl, callback) {
 
 
 // Upload Room Image (Cloudinary, auto-set main if none exists)
-// Upload Room Category Image (SAME AS HOTEL IMAGES)
+
 app.post(
   "/api/rooms/:roomId/images",
   upload.single("image"),
-  (req, res) => {
+  async (req, res) => {
     try {
       const roomId = req.params.roomId;
 
@@ -1280,56 +1280,39 @@ app.post(
         return res.status(400).json({ error: "No image uploaded" });
       }
 
-      const imageUrl = req.file.path; // ✅ Cloudinary URL
+      const imageUrl = req.file.path; // Cloudinary URL
 
       db.query(
         "INSERT INTO room_images (room_id, image_url) VALUES (?, ?)",
         [roomId, imageUrl],
         err => {
-          if (err) {
-            console.error("ROOM IMAGE DB ERROR:", err);
-            return res.status(500).json({ error: err.message });
-          }
+          if (err) return res.status(500).json({ error: err });
 
-          // auto set main image if none exists
           db.query(
             "SELECT id FROM room_images WHERE room_id=? AND is_main=1 LIMIT 1",
             [roomId],
             (err2, rows) => {
-              if (err2) return res.status(500).json({ error: err2.message });
+              if (err2) return res.status(500).json({ error: err2 });
 
               if (rows.length === 0) {
-                db.query(
-                  "UPDATE room_images SET is_main=1 WHERE room_id=? AND image_url=?",
-                  [roomId, imageUrl],
-                  err3 => {
-                    if (err3)
-                      return res.status(500).json({ error: err3.message });
-
-                    res.json({
-                      success: true,
-                      imageUrl,
-                      is_main: 1
-                    });
-                  }
-                );
-              } else {
-                res.json({
-                  success: true,
-                  imageUrl,
-                  is_main: 0
+                setMainImage(roomId, imageUrl, err3 => {
+                  if (err3) return res.status(500).json({ error: err3 });
+                  res.json({ success: true, imageUrl, is_main: 1 });
                 });
+              } else {
+                res.json({ success: true, imageUrl, is_main: 0 });
               }
             }
           );
         }
       );
     } catch (err) {
-      console.error("ROOM IMAGE UPLOAD FAILED:", err);
+      console.error("Room image upload failed:", err);
       res.status(500).json({ error: "Upload failed" });
     }
   }
 );
+
 //================
 // Get room images
 //================
