@@ -1,4 +1,15 @@
+process.on("uncaughtException", (err) => {
+  console.error("🔥 UNCAUGHT EXCEPTION");
+  console.error(err.stack || err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("🔥 UNHANDLED PROMISE REJECTION");
+  console.error(reason);
+});
+
 require("dotenv").config();
+
 
 // =======================
 //   IMPORTS & SETUP
@@ -12,6 +23,8 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const adminAuthMiddleware = require("./middleware/adminAuthMiddleware");
+
+
 
 // ✅ CREATE APP FIRST
 const app = express();
@@ -895,6 +908,12 @@ app.get("/api/rooms/by-category/:categoryId", (req, res) => {
 // ADD ROOM CATEGORY + AUTO CREATE ROOMS (SAFE)
 // ====================================================
 app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
+
+console.log(
+  "[ROOM-CREATE] HIT",
+  "hotelId =", req.params.hotelId
+);
+
   const conn = db.promise();
 
   const {
@@ -915,6 +934,18 @@ app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
     view_type = null,
     roomNames = []
   } = req.body;
+
+
+console.log("[ROOM-CREATE] BODY:", {
+  category,
+  max_rooms,
+  price,
+  gst,
+  roomNamesType: Array.isArray(req.body.roomNames)
+    ? "array"
+    : typeof req.body.roomNames
+});
+
 
   // 🛑 HARD VALIDATION
   const maxRooms = Number(max_rooms);
