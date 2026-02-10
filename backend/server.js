@@ -56,8 +56,7 @@ app.get("/health", (req, res) => {
 //   STATIC FILES (VPS SAFE)
 // =======================
 
-// uploads
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // admin panel
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
@@ -281,7 +280,7 @@ const razorpay = new Razorpay({
 app.post("/api/branding/logo", upload.single("logo"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No logo uploaded" });
 
-  const logoUrl = `/uploads/${req.file.filename}`;
+  const logoUrl = req.file.path;
 
   db.query(
     "UPDATE branding SET logo_url=? WHERE id=1",
@@ -820,7 +819,12 @@ app.get("/api/hotels/:id", (req, res) => {
 
     // Load hotel gallery images
     db.query("SELECT * FROM hotel_images WHERE hotel_id=?", [hotelId], (err, imgs) => {
-      hotel.images = imgs || [];
+      hotel.images = (imgs || []).map(img => ({
+  ...img,
+  image_url: img.image_url.startsWith("http")
+    ? img.image_url
+    : `${process.env.PUBLIC_BASE_URL}${img.image_url}`
+}));
 
       // Load room categories with MAIN IMAGE
       const roomSql = `
@@ -833,7 +837,15 @@ app.get("/api/hotels/:id", (req, res) => {
         WHERE rc.hotel_id = ?`;
 
       db.query(roomSql, [hotelId], (err, rooms) => {
-        hotel.rooms = rooms || [];
+        hotel.rooms = (rooms || []).map(r => ({
+  ...r,
+  main_image: r.main_image
+    ? (r.main_image.startsWith("http")
+        ? r.main_image
+        : `${process.env.PUBLIC_BASE_URL}${r.main_image}`)
+    : null
+}));
+
         res.json(hotel);
       });
     });
