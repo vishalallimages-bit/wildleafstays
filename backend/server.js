@@ -895,28 +895,55 @@ app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
 
   const {
     category,
-    description,
-    price,
-    gst,
+    description = null,
+    price = Number(req.body.price) || 0,
+    gst = Number(req.body.gst) || 0,
     max_rooms,
-    bed_size,
-    view_type,
+    max_guests = 0,
+    base_included_adults = 0,
+    kid_chargeable_age = 0,
+    extra_adult_price = 0,
+    extra_kid_price = 0,
+    beds = 0,
+    bathrooms = 0,
+    room_size = null,
+    bed_size = null,
+    view_type = null,
     roomNames = []
   } = req.body;
 
-  if (!category || !max_rooms) {
-    return res.status(400).json({ error: "Category & max_rooms required" });
+  // 🛑 HARD VALIDATION
+  const maxRooms = Number(max_rooms);
+  if (!category || !Number.isInteger(maxRooms) || maxRooms <= 0) {
+    return res.status(400).json({ error: "Invalid category or max_rooms" });
   }
 
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Create room category
+    // 1️⃣ Create room category (FULL SCHEMA)
     const [result] = await conn.query(
       `
       INSERT INTO room_categories
-      (hotel_id, category, description, price, gst, max_rooms, bed_size, view_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (
+        hotel_id,
+        category,
+        description,
+        price,
+        gst,
+        max_rooms,
+        max_guests,
+        base_included_adults,
+        kid_chargeable_age,
+        extra_adult_price,
+        extra_kid_price,
+        beds,
+        bathrooms,
+        room_size,
+        bed_size,
+        view_type
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         req.params.hotelId,
@@ -924,7 +951,15 @@ app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
         description,
         price,
         gst,
-        max_rooms,
+        maxRooms,
+        max_guests,
+        base_included_adults,
+        kid_chargeable_age,
+        extra_adult_price,
+        extra_kid_price,
+        beds,
+        bathrooms,
+        room_size,
         bed_size,
         view_type
       ]
@@ -932,13 +967,11 @@ app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
 
     const roomCategoryId = result.insertId;
 
-    // 2️⃣ Generate room names (AUTO fallback)
-    const maxRooms = Number(max_rooms);
-
+    // 2️⃣ Generate room names (SAFE)
     const finalRoomNames =
       Array.isArray(roomNames) && roomNames.length > 0
         ? roomNames
-        : Array.from({ length: maxRooms }, (_, i) =>
+        : [...Array(maxRooms)].map((_, i) =>
             `${category.substring(0, 1).toUpperCase()}-${i + 1}`
           );
 
@@ -973,6 +1006,7 @@ app.post("/api/hotels/:hotelId/rooms", async (req, res) => {
     res.status(500).json({ error: "Failed to create room category" });
   }
 });
+
 
 
 
