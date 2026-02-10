@@ -406,20 +406,32 @@ app.delete("/api/homepage/sections/:id", (req, res) => {
 // ====================================================
 
 // Upload Collage Image
-app.post("/api/collage/upload", upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No image uploaded" });
-
-  const logoUrl = req.file.path;
-
-
-  db.query(
-    "INSERT INTO collage_images (image_url) VALUES (?)",
-    [imageUrl],
-    err => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({ success: true, image_url: imageUrl });
+app.post("/api/collage/upload", async (req, res) => {
+  try {
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ error: "No image uploaded" });
     }
-  );
+
+    const file = req.files.image;
+
+    const result = await cloudinary.uploader.upload(file.tempFilePath, {
+      folder: "homepage_collage"
+    });
+
+    await db.query(
+      "INSERT INTO collage_images (image_url) VALUES (?)",
+      [result.secure_url]
+    );
+
+    res.json({
+      success: true,
+      image_url: result.secure_url
+    });
+
+  } catch (err) {
+    console.error("Collage upload failed:", err);
+    res.status(500).json({ error: "Upload failed" });
+  }
 });
 
 // Get All Collage Images
