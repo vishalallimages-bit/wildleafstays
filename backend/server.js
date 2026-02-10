@@ -23,21 +23,25 @@ const app = express();
 const allowedOrigins = [
   "https://www.wildleafstays.com",
   "https://wildleafstays.com",
-"https://api.wildleafstays.com"
+  "https://api.wildleafstays.com"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow server-side / health checks
+    // Allow server-side calls & Railway health checks
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    return callback(new Error("CORS not allowed"));
+    // ❗ DO NOT throw — allow but log
+    console.warn("CORS fallback allowed for:", origin);
+    return callback(null, true);
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // =======================
