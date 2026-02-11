@@ -33,20 +33,19 @@ const app = express();
 //   CORS (PRODUCTION SAFE)
 // =======================
 
+const allowedOrigins = [
+  "https://www.wildleafstays.com",
+  "https://wildleafstays.com"
+];
+
 app.use(cors({
-  origin: [
-    "https://wildleafstays.com",
-    "https://www.wildleafstays.com"
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  origin: allowedOrigins,
+  credentials: true
 }));
 
-// Explicitly handle preflight
-app.options("*", (req, res) => {
-  res.sendStatus(204);
-});
+// IMPORTANT — let cors handle preflight automatically
+app.options("*", cors());
+
 
 
 // =======================
