@@ -30,32 +30,24 @@ const adminAuthMiddleware = require("./middleware/adminAuthMiddleware");
 const app = express();
 
 // =======================
-//   CORS (RAILWAY SAFE)
+//   CORS (PRODUCTION SAFE)
 // =======================
 
-const allowedOrigins = [
-  "https://www.wildleafstays.com",
-  "https://wildleafstays.com",
-  "https://api.wildleafstays.com"
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow server-side calls & Railway health checks
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    // ❗ DO NOT throw — allow but log
-    console.warn("CORS fallback allowed for:", origin);
-    return callback(null, true);
-  },
+  origin: [
+    "https://wildleafstays.com",
+    "https://www.wildleafstays.com"
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Explicitly handle preflight
+app.options("*", (req, res) => {
+  res.sendStatus(204);
+});
+
 
 // =======================
 //   MIDDLEWARES
