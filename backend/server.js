@@ -2653,7 +2653,7 @@ app.post("/api/payments/verify", async (req, res) => {
     razorpay_signature
   } = req.body;
 
-  const conn = db.promise();
+   const conn = await db.promise().getConnection(); // ✅ FIX
 
   try {
     await conn.beginTransaction();
@@ -2845,6 +2845,8 @@ app.post("/api/payments/verify", async (req, res) => {
     await conn.rollback();
     console.error("PAYMENT VERIFY ERROR:", err.message);
     res.status(500).json({ error: err.message });
+  }finally {
+    conn.release(); // ✅ VERY IMPORTANT
   }
 });
 
