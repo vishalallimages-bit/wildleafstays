@@ -1053,12 +1053,11 @@ console.log("[ROOM-CREATE] BODY:", {
 app.put("/api/rooms/:id", async (req, res) => {
   const id = req.params.id;
   const data = req.body;
-  const conn = db.promise();
 
+  const conn = await db.promise().getConnection();
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Update room category fields
     await conn.query(
       `
       UPDATE room_categories SET
@@ -1183,13 +1182,14 @@ app.put("/api/rooms/:id", async (req, res) => {
       );
     }
 
-    await conn.commit();
+     await conn.commit();
     res.json({ success: true });
-
   } catch (err) {
     await conn.rollback();
     console.error("UPDATE ROOM CATEGORY ERROR:", err);
     res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
   }
 });
 
@@ -1204,19 +1204,11 @@ app.post("/api/rooms/create-bulk", async (req, res) => {
     return res.status(400).json({ error: "Invalid payload" });
   }
 
-  if (rooms.length === 0) {
-    return res.json({ success: true });
-  }
+  if (rooms.length === 0) return res.json({ success: true });
 
-  const conn = db.promise();
-
+  const conn = await db.promise().getConnection();
   try {
-    const values = rooms.map(name => [
-      hotelId,
-      roomCategoryId,
-      name,
-      1
-    ]);
+    const values = rooms.map(name => [hotelId, roomCategoryId, name, 1]);
 
     await conn.query(
       `
@@ -1228,43 +1220,37 @@ app.post("/api/rooms/create-bulk", async (req, res) => {
     );
 
     res.json({ success: true, created: rooms.length });
-
   } catch (err) {
     console.error("ROOM BULK CREATE ERROR:", err);
-    res.status(500).json({ error: "Failed to create rooms" });
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
   }
 });
 
+// ====================================================
+// Delete Rooms
+// ====================================================
+
 app.delete("/api/rooms/:id", async (req, res) => {
-  const conn = db.promise();
   const categoryId = req.params.id;
+  const conn = await db.promise().getConnection();
 
   try {
     await conn.beginTransaction();
 
-    // delete physical rooms
-    await conn.query(
-      "DELETE FROM rooms WHERE room_category_id = ?",
-      [categoryId]
-    );
-
-    // delete images
-    await conn.query(
-      "DELETE FROM room_images WHERE room_id NOT IN (SELECT id FROM rooms)"
-    );
-
-    // delete category
-    await conn.query(
-      "DELETE FROM room_categories WHERE id = ?",
-      [categoryId]
-    );
+    await conn.query("DELETE FROM rooms WHERE room_category_id = ?", [categoryId]);
+    await conn.query("DELETE FROM room_images WHERE room_id NOT IN (SELECT id FROM rooms)");
+    await conn.query("DELETE FROM room_categories WHERE id = ?", [categoryId]);
 
     await conn.commit();
     res.json({ success: true });
-
   } catch (err) {
     await conn.rollback();
+    console.error("DELETE ROOM CATEGORY ERROR:", err);
     res.status(500).json({ error: "Failed to delete room category" });
+  } finally {
+    conn.release();
   }
 });
 
