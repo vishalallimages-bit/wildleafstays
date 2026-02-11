@@ -222,8 +222,12 @@ const db = mysql.createPool({
   database: MYSQL_DATABASE,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  connectTimeout: 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
+
 
 // Test connection ONCE
 db.getConnection((err, conn) => {
