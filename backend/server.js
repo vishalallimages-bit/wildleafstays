@@ -2902,7 +2902,7 @@ app.post("/api/calendar/bookings", async (req, res) => {
     return res.status(400).json({ error: "Missing fields" });
   }
 
-  const conn = db.promise();
+  const conn = await db.promise().getConnection(); 
 
   try {
     await conn.beginTransaction();
@@ -3076,6 +3076,8 @@ for (const catId in categoryMap) {
     await conn.rollback();
     console.error("CALENDAR BOOKING ERROR:", err.message);
     res.status(400).json({ error: err.message });
+  }finally {
+    conn.release();   // ✅ IMPORTANT (prevents pool from dying)
   }
 });
 
