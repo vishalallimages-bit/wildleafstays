@@ -3086,7 +3086,8 @@ for (const catId in categoryMap) {
 // ============================================
 app.put("/api/calendar/bookings/:id", async (req, res) => {
   const bookingId = req.params.id;
-  const conn = db.promise();
+  
+
 
   const {
     guest_name,
@@ -3110,7 +3111,7 @@ app.put("/api/calendar/bookings/:id", async (req, res) => {
   ) {
     return res.status(400).json({ error: "Missing required fields" });
   }
-
+const conn = await db.promise().getConnection();
   try {
     await conn.beginTransaction();
 
@@ -3303,6 +3304,8 @@ app.put("/api/calendar/bookings/:id", async (req, res) => {
     await conn.rollback();
     console.error("BOOKING EDIT ERROR:", err.message);
     res.status(400).json({ error: err.message });
+  }finally {
+    conn.release();   // ✅ CRITICAL
   }
 });
 
